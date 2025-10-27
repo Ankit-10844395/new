@@ -33,3 +33,12 @@ jobs:
         run: docker push 790033385237.dkr.ecr.us-east-1.amazonaws.com/devops-ank-25:latest
 
       
+      - name: Update ECS service with new task definition
+        run: |
+            aws ecs update-service \
+              --cluster new-cluster5171 \
+              --service ecs-task-service-6wqtxvpq \
+              --task-definition ecs-task
+
+
+      
