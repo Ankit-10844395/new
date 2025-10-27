@@ -26,9 +26,9 @@ jobs:
 
       with:
 
-        aws-access-key-id: ${{ secrets.AKIA3P4NIY4KXTUBXTUJ}}
+        aws-access-key-id: ${{ secrets.ACCESS_KEY}}
 
-        aws-secret-access-key: ${{ secrets.DYraK7bG4CemFpRTPg1ulpeSyQrVb/wsOf4Ickqq }}
+        aws-secret-access-key: ${{ secrets.SECRET_KEY }}
 
         aws-region: us-east-1
  
