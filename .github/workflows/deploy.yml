@@ -38,7 +38,8 @@ jobs:
             aws ecs update-service \
               --cluster new-cluster5171 \
               --service ecs-task-service-6wqtxvpq \
-              --task-definition ecs-task
+              --task-definition ecs-task \
+              --force-new-deployment
 
 
       
