@@ -1,0 +1,35 @@
+name: Deploy Static Site to ECS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.SECRET_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 790033385237.dkr.ecr.us-east-1.amazonaws.com
+
+      - name: Build Docker image
+        run: docker build -t devops-ank-25 .
+
+      - name: Tag Docker image
+        run: docker tag devops-ank-25:latest 790033385237.dkr.ecr.us-east-1.amazonaws.com/devops-ank-25:latest
+
+      - name: Push Docker image to ECR
+        run: docker push 790033385237.dkr.ecr.us-east-1.amazonaws.com/devops-ank-25:latest
+
+      
