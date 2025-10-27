@@ -3,7 +3,7 @@ name: Deploy Static Site to ECS
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:
