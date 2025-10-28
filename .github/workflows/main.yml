@@ -27,13 +27,12 @@ jobs:
             -Dsonar.projectName=swiggy
             -Dsonar.sources=.
 
-      # AWS ECR Login
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1  # Change to your region
+          aws-region: us-east-1
 
       - name: Login to Amazon ECR
         run: |
@@ -46,34 +45,39 @@ jobs:
       - name: Tag Docker image for ECR
         run: |
           docker tag devops-ank-25:latest 790033385237.dkr.ecr.us-east-1.amazonaws.com/devops-ank-25:latest
+
       - name: Push Docker image to ECR
         run: |
           docker push 790033385237.dkr.ecr.us-east-1.amazonaws.com/devops-ank-25:latest
 
   deploy:
-     needs: build
-     runs-on: [self-hosted]
-     steps:
-        - name: docker pull image
-          run: docker pull 790033385237.dkr.ecr.us-east-1.amazonaws.com/devops-ank-25:latest
-        - name: Image scan
-          run: trivy image 790033385237.dkr.ecr.us-east-1.amazonaws.com/devops-ank-25:latest > trivyimagedeploy.txt
+    needs: build
+    runs-on: self-hosted
 
-        - name: docker pull image
-          run: |
-            docker stop swiggy-clone || true
-            docker rm swiggy-clone || true
-        - name: Deploy to container
-          run: docker run -d --name swiggy-clone -p 3000:3000 790033385237.dkr.ecr.us-east-1.amazonaws.com/devops-ank-25:latest
-        - name: Update kubeconfig
-          run: aws eks --region us-east-1 update-kubeconfig --name EKS_CLOUD
-        - name: Deploy to kubernetes
-          run: kubectl apply -f deployment-service.yml --validate=false
+    steps:
+      - name: Docker pull image
+        run: docker pull 790033385237.dkr.ecr.us-east-1.amazonaws.com/devops-ank-25:latest
 
+      - name: Image scan
+        run: trivy image 790033385237.dkr.ecr.us-east-1.amazonaws.com/devops-ank-25:latest > trivyimagedeploy.txt
 
-      # If you wish to fail your job when the Quality Gate is red, uncomment the
-      # following lines. This would typically be used to fail a deployment.
-      # - uses: sonarsource/sonarqube-quality-gate-action@master
-      #   timeout-minutes: 5
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Stop and remove existing container
+        run: |
+          docker stop swiggy-clone || true
+          docker rm swiggy-clone || true
+
+      - name: Deploy to container
+        run: docker run -d --name swiggy-clone -p 3000:3000 790033385237.dkr.ecr.us-east-1.amazonaws.com/devops-ank-25:latest
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Update kubeconfig
+        run: aws eks --region us-east-1 update-kubeconfig --name EKS_CLOUD
+
+      - name: Deploy to Kubernetes
+        run: kubectl apply -f deployment-service.yml --validate=false
